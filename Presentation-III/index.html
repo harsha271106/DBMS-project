@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Internship Management & Progress Monitoring System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>Internship Application & Progress Monitoring System</h1>
+        <p>
+          <span>Presenter: <strong>Martala Harsha Vardhan Reddy</strong> (25WU0102152)</span>
+          <span>&bull;</span>
+          <span>Database: <strong style="color:var(--primary);">student_intern</strong></span>
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button id="ownerToggleBtn" type="button" onclick="openOwnerModal()">
+          🔑 Unlock Owner Mode
+        </button>
+        <div id="roleBadge" class="badge-role viewer">
+          👁️ Viewer (Read Only)
+        </div>
+        <div class="badge">
+          <span class="status-dot"></span> MySQL Connected (3306)
+        </div>
+      </div>
+    </header>
+
+    <!-- LIVE SEARCH STRIP -->
+    <div class="search-strip">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        id="globalSearchInput" 
+        placeholder="Search any record across all tables (e.g. Student Name, Company, Mentor, ID, Status)..." 
+        onkeyup="filterAllTables()"
+      />
+      <button type="button" class="btn-search-clear" onclick="clearGlobalSearch()">Clear</button>
+    </div>
+
+    <!-- METRICS STRIP -->
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="metric-title">Registered Students</div>
+        <div class="metric-val" id="metric-students">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Partner Companies</div>
+        <div class="metric-val" id="metric-companies">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Active Postings</div>
+        <div class="metric-val" id="metric-postings">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Active Records</div>
+        <div class="metric-val" id="metric-records">0</div>
+      </div>
+    </div>
+
+    <!-- SECTION 1: FULL-WIDTH POSTINGS DIRECTORY -->
+    <section class="panel full-width-panel" style="margin-bottom: 24px;">
+      <div class="panel-header">
+        <div class="panel-title-wrap">
+          <h2>Active Postings Directory</h2>
+          <span class="pill">Table: Internship_Posting</span>
+        </div>
+        <span class="badge-count">Available Openings</span>
+      </div>
+
+      <form id="postingForm" class="owner-control">
+        <div class="form-group">
+          <label for="post_id">Posting ID</label>
+          <input type="text" id="post_id" placeholder="e.g. P431" required />
+        </div>
+        <div class="form-group">
+          <label for="post_comp_id">Company ID</label>
+          <input type="text" id="post_comp_id" placeholder="e.g. C201" required />
+        </div>
+        <div class="form-group">
+          <label for="post_title">Role Title</label>
+          <input type="text" id="post_title" placeholder="e.g. Cloud Engineer Intern" required />
+        </div>
+        <div class="form-group">
+          <label for="post_stipend">Stipend (₹)</label>
+          <input type="number" step="500" id="post_stipend" placeholder="e.g. 45000" required />
+        </div>
+        <div class="form-group">
+          <label for="post_duration">Duration</label>
+          <input type="text" id="post_duration" placeholder="e.g. 12 Weeks" required />
+        </div>
+        <div class="form-group full">
+          <label for="post_desc">Role Description</label>
+          <textarea id="post_desc" placeholder="Responsibilities and project requirements..." required></textarea>
+        </div>
+        <button type="submit" class="btn-submit">+ Create Internship Posting</button>
+      </form>
+
+      <div class="table-container" style="max-height: 380px;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 100px;">Posting ID</th>
+              <th style="width: 180px;">Company</th>
+              <th style="min-width: 220px;">Role Title</th>
+              <th style="width: 120px;">Stipend</th>
+              <th style="width: 130px;">Duration</th>
+              <th class="action-col" style="width: 90px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="postingTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 2: 2-COLUMN GRID (STUDENTS & COMPANIES) -->
+    <div class="grid" style="margin-bottom: 24px;">
+      
+      <!-- STUDENTS DIRECTORY -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <h2>Student Master Directory</h2>
+            <span class="pill">Table: Student</span>
+          </div>
+        </div>
+
+        <form id="studentForm" class="owner-control">
+          <div class="form-group">
+            <label for="s_id">Student ID</label>
+            <input type="text" id="s_id" placeholder="e.g. S131" required />
+          </div>
+          <div class="form-group">
+            <label for="s_name">Full Name</label>
+            <input type="text" id="s_name" placeholder="Candidate Name" required />
+          </div>
+          <div class="form-group">
+            <label for="s_email">Academic Email</label>
+            <input type="email" id="s_email" placeholder="name@univ.edu" required />
+          </div>
+          <div class="form-group">
+            <label for="s_program">Academic Program</label>
+            <input type="text" id="s_program" placeholder="e.g. B.Tech CSE" required />
+          </div>
+          <div class="form-group">
+            <label for="s_semester">Current Semester</label>
+            <input type="number" id="s_semester" placeholder="1 - 8" min="1" max="8" required />
+          </div>
+          <div class="form-group">
+            <label for="s_cgpa">Cumulative GPA</label>
+            <input type="number" step="0.01" id="s_cgpa" placeholder="0.00 - 10.00" min="0" max="10" required />
+          </div>
+          <button type="submit" class="btn-submit">+ Register Student Record</button>
+        </form>
+
+        <div class="table-container" style="max-height: 380px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 80px;">ID</th>
+                <th>Name</th>
+                <th>Program</th>
+                <th style="width: 80px;">CGPA</th>
+                <th class="action-col" style="width: 85px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CORPORATE PARTNERS -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <h2>Corporate Partners</h2>
+            <span class="pill">Table: Company</span>
+          </div>
+        </div>
+
+        <form id="companyForm" class="owner-control">
+          <div class="form-group">
+            <label for="c_id">Company ID</label>
+            <input type="text" id="c_id" placeholder="e.g. C231" required />
+          </div>
+          <div class="form-group">
+            <label for="c_name">Company Name</label>
+            <input type="text" id="c_name" placeholder="e.g. Atlassian" required />
+          </div>
+          <div class="form-group">
+            <label for="c_industry">Industry Domain</label>
+            <input type="text" id="c_industry" placeholder="e.g. Enterprise Software" required />
+          </div>
+          <div class="form-group">
+            <label for="c_location">Location</label>
+            <input type="text" id="c_location" placeholder="e.g. Bangalore" required />
+          </div>
+          <div class="form-group full">
+            <label for="c_contact">Corporate Contact</label>
+            <input type="text" id="c_contact" placeholder="careers@company.com" required />
+          </div>
+          <button type="submit" class="btn-submit">+ Add Company Partner</button>
+        </form>
+
+        <div class="table-container" style="max-height: 380px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 80px;">ID</th>
+                <th>Company</th>
+                <th>Location</th>
+                <th>Contact</th>
+                <th class="action-col" style="width: 85px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="companyTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- SECTION 3: 2-COLUMN GRID (APPLICATIONS & MENTORS) -->
+    <div class="grid" style="margin-bottom: 24px;">
+
+      <!-- APPLICATIONS -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <h2>Student Applications</h2>
+            <span class="pill">Table: Application</span>
+          </div>
+        </div>
+
+        <form id="applicationForm" class="owner-control">
+          <div class="form-group">
+            <label for="app_id">Application ID</label>
+            <input type="text" id="app_id" placeholder="e.g. A331" required />
+          </div>
+          <div class="form-group">
+            <label for="app_student_id">Student ID</label>
+            <input type="text" id="app_student_id" placeholder="e.g. S101" required />
+          </div>
+          <div class="form-group">
+            <label for="app_posting_id">Posting ID</label>
+            <input type="text" id="app_posting_id" placeholder="e.g. P401" required />
+          </div>
+          <div class="form-group">
+            <label for="app_status">Status</label>
+            <select id="app_status" class="form-select">
+              <option value="Applied">Applied</option>
+              <option value="Under Review">Under Review</option>
+              <option value="Accepted">Accepted</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-submit">+ Submit Application</button>
+        </form>
+
+        <div class="table-container" style="max-height: 360px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 90px;">App ID</th>
+                <th>Student</th>
+                <th>Applied Role</th>
+                <th style="width: 100px;">Status</th>
+                <th class="action-col" style="width: 85px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="applicationTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- FACULTY MENTORS -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <h2>Faculty Mentors Directory</h2>
+            <span class="pill">Table: Faculty_Mentor</span>
+          </div>
+        </div>
+
+        <form id="mentorForm" class="owner-control">
+          <div class="form-group">
+            <label for="m_id">Faculty ID</label>
+            <input type="text" id="m_id" placeholder="e.g. F531" required />
+          </div>
+          <div class="form-group">
+            <label for="m_name">Full Name</label>
+            <input type="text" id="m_name" placeholder="Prof. Name" required />
+          </div>
+          <div class="form-group">
+            <label for="m_dept">Department</label>
+            <input type="text" id="m_dept" placeholder="Computer Science" required />
+          </div>
+          <div class="form-group">
+            <label for="m_email">Email</label>
+            <input type="email" id="m_email" placeholder="faculty@univ.edu" required />
+          </div>
+          <button type="submit" class="btn-submit">+ Add Faculty Mentor</button>
+        </form>
+
+        <div class="table-container" style="max-height: 360px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 90px;">Faculty ID</th>
+                <th>Mentor Name</th>
+                <th>Department</th>
+                <th class="action-col" style="width: 85px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="mentorTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- SECTION 4: 2-COLUMN GRID (REPORTS & RECORDS) -->
+    <div class="grid" style="margin-bottom: 28px;">
+      
+      <!-- PROGRESS REPORTS -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <h2>Weekly Milestone Log</h2>
+            <span class="pill">Table: Progress_Report</span>
+          </div>
+        </div>
+
+        <form id="reportForm" class="owner-control">
+          <div class="form-group">
+            <label for="r_record_id">Internship Record ID</label>
+            <input type="text" id="r_record_id" placeholder="e.g. R601" required />
+          </div>
+          <div class="form-group">
+            <label for="r_week_num">Log Week Number</label>
+            <input type="number" id="r_week_num" placeholder="Week #" min="1" max="52" required />
+          </div>
+          <div class="form-group full">
+            <label for="r_desc">Milestone & Deliverables</label>
+            <textarea id="r_desc" placeholder="Details of tasks completed this week..." required></textarea>
+          </div>
+          <div class="form-group full">
+            <label for="r_feedback">Mentor Feedback</label>
+            <textarea id="r_feedback" placeholder="Evaluation remarks (optional)..."></textarea>
+          </div>
+          <button type="submit" class="btn-submit">+ Submit Weekly Log</button>
+        </form>
+
+        <div class="table-container" style="max-height: 360px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 90px;">Record ID</th>
+                <th style="width: 70px;">Week</th>
+                <th>Deliverables</th>
+                <th>Feedback</th>
+                <th class="action-col" style="width: 85px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="reportTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- MONITORED RECORDS -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <h2>Monitored Internship Records</h2>
+            <span class="pill">Table: Internship_Record</span>
+          </div>
+        </div>
+
+        <form id="recordForm" class="owner-control">
+          <div class="form-group">
+            <label for="rec_id">Record ID</label>
+            <input type="text" id="rec_id" placeholder="e.g. R631" required />
+          </div>
+          <div class="form-group">
+            <label for="rec_app_id">Application ID</label>
+            <input type="text" id="rec_app_id" placeholder="e.g. A301" required />
+          </div>
+          <div class="form-group">
+            <label for="rec_fac_id">Mentor ID</label>
+            <input type="text" id="rec_fac_id" placeholder="e.g. F501" required />
+          </div>
+          <div class="form-group">
+            <label for="rec_status">Status</label>
+            <select id="rec_status" class="form-select">
+              <option value="Ongoing">Ongoing</option>
+              <option value="Completed">Completed</option>
+              <option value="Terminated">Terminated</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="rec_start">Start Date</label>
+            <input type="date" id="rec_start" required />
+          </div>
+          <div class="form-group">
+            <label for="rec_end">End Date</label>
+            <input type="date" id="rec_end" />
+          </div>
+          <button type="submit" class="btn-submit">+ Create Internship Record</button>
+        </form>
+
+        <div class="table-container" style="max-height: 480px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 85px;">Record</th>
+                <th>Student</th>
+                <th>Mentor</th>
+                <th style="width: 95px;">Start Date</th>
+                <th style="width: 90px;">Status</th>
+                <th class="action-col" style="width: 85px;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="recordTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- NATIVE MODAL DIALOG FOR OWNER AUTH -->
+  <dialog id="ownerModal">
+    <h3>Owner Authentication</h3>
+    <p>Enter owner passphrase to unlock full management controls.</p>
+    <input type="password" id="ownerPassInput" placeholder="Enter passphrase" />
+    <div class="modal-btn-row">
+      <button type="button" class="btn-modal-cancel" onclick="closeOwnerModal()">Cancel</button>
+      <button type="button" class="btn-modal-unlock" onclick="submitOwnerAuth()">Unlock</button>
+    </div>
+  </dialog>
+
+  <script src="script.js?v=6.0"></script>
+</body>
+</html>
